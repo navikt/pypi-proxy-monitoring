@@ -1,0 +1,43 @@
+name: Deploy PYPI proxy monitoring cloud function
+
+on:
+  push:
+    branches: 
+      - 'main'
+    paths:
+      - .github/workflows/deploy.yaml
+      - cloud-function/main.go
+      - cloud-function/go.mod
+
+jobs:
+  deploy-dev:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Google auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ci-cloud-function-deployer@knada-dev.iam.gserviceaccount.com
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy cloud function
+        run:  |
+          gcloud functions deploy budget-notification-logger \
+          --no-allow-unauthenticated \
+          --gen2 \
+          --source=cloud-function \
+          --entry-point=Entrypoint \
+          --trigger-topic=pypi-proxy-audit-topic \
+          --region=europe-north1 \
+          --runtime=go122 \
+          --build-service-account=pypi-proxy-monitoring-build@knada-dev.iam.gserviceaccount.com \
+          --run-service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
+          --service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
+          --trigger-service-account=ci-cloud-function-deployer@knada-dev.iam.gserviceaccount.com \
+          --max-instances=20
