@@ -36,7 +36,7 @@ jobs:
           --trigger-topic=pypi-proxy-audit-topic \
           --region=europe-north1 \
           --runtime=go122 \
-          --build-service-account=projects/knada-dev/pypi-proxy-monitoring-build@knada-dev.iam.gserviceaccount.com \
+          --build-service-account=projects/knada-dev/serviceAccounts/pypi-proxy-monitoring-build@knada-dev.iam.gserviceaccount.com \
           --run-service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
           --service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
           --max-instances=20
