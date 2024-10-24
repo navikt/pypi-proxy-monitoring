@@ -39,5 +39,4 @@ jobs:
           --build-service-account=pypi-proxy-monitoring-build@knada-dev.iam.gserviceaccount.com \
           --run-service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
           --service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
-          --trigger-service-account=ci-cloud-function-deployer@knada-dev.iam.gserviceaccount.com \
           --max-instances=20
