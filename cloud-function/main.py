@@ -117,6 +117,6 @@ def scan_package(event_data: dict) -> None:
 @functions_framework.cloud_event
 def entrypoint(cloud_event):
    event_data = base64.b64decode(cloud_event.data["message"]["data"])
-   logging.info(event_data)
+   logging.info("event:", cloud_event)
    
    scan_package(event_data=event_data)
