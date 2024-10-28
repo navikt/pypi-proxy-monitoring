@@ -39,4 +39,5 @@ jobs:
           --service-account=cloud-run-invoker@knada-dev.iam.gserviceaccount.com \
           --build-service-account=projects/knada-dev/serviceAccounts/pypi-proxy-monitoring-build@knada-dev.iam.gserviceaccount.com \
           --run-service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
+          --memory=512MB \
           --max-instances=20
