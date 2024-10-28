@@ -64,8 +64,7 @@ def notify_user(package: PythonPackage) -> None:
     client = WebClient(token=slack_token)
     user = client.users_lookupByEmail(email=package.user_email)
     if not user["ok"]:
-        print("todo: user not found in slack throw exception")
-        return
+        raise Exception("todo: user not found in slack throw exception")
 
     user_id = user["user"]["id"]
     client.chat_postMessage(
