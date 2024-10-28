@@ -6,8 +6,8 @@ on:
       - 'main'
     paths:
       - .github/workflows/deploy.yaml
-      - cloud-function/main.go
-      - cloud-function/go.mod
+      - cloud-function/function.py
+      - cloud-function/requirements.txt
 
 jobs:
   deploy-dev:
@@ -32,10 +32,10 @@ jobs:
           --no-allow-unauthenticated \
           --gen2 \
           --source=cloud-function \
-          --entry-point=Entrypoint \
+          --entry-point=entrypoint \
           --trigger-topic=pypi-proxy-audit-topic \
           --region=europe-north1 \
-          --runtime=go122 \
+          --runtime=python312 \
           --service-account=cloud-run-invoker@knada-dev.iam.gserviceaccount.com \
           --build-service-account=projects/knada-dev/serviceAccounts/pypi-proxy-monitoring-build@knada-dev.iam.gserviceaccount.com \
           --run-service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
