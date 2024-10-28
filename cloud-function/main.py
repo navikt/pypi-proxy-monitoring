@@ -76,7 +76,7 @@ def notify_user(package: PythonPackage) -> None:
 
 def get_slack_token() -> str:
     client = SecretManagerServiceClient()
-    name = f"projects/{os.environ['GCP_PROJECT']}/secrets/pypi-proxy-slack-token/versions/latest"
+    name = f"projects/knada-dev/secrets/pypi-proxy-slack-token/versions/latest"
     response = client.access_secret_version(request={"name": name})
 
     crc32c = google_crc32c.Checksum()
