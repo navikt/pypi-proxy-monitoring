@@ -10,6 +10,7 @@ from slack_sdk import WebClient
 import functions_framework
 import google_crc32c
 from google.cloud.secretmanager import SecretManagerServiceClient
+from google.cloud.bigquery import Client as BQClient
 
 logging.basicConfig(level=logging.INFO)
 
@@ -68,9 +69,9 @@ def notify_user(package: PythonPackage) -> None:
 
     user_id = user["user"]["id"]
     client.chat_postMessage(
-                channel=user_id,
-                text="test scan error :eyes:",
-                blocks=create_slack_message(package=package)
+        channel=user_id,
+        text="test scan error :eyes:",
+        blocks=create_slack_message(package=package)
     )
 
 
@@ -117,10 +118,17 @@ def scan_package(event_data: dict) -> None:
 @functions_framework.cloud_event
 def entrypoint(cloud_event):
    event_data = json.loads(base64.b64decode(cloud_event.data["message"]["data"]))
-   logging.info("event:", cloud_event)
+   print("event:", cloud_event)
+   print("event_data", event_data)
+
+   client = BQClient()
+   query = f"SELECT package, version, timestamp FROM `knada-dev.pypi_proxy_data.package_installations` WHERE log_insert_id = '{cloud_event['insertId']}'"
+   df = client.query_and_wait(query).to_dataframe()
+
+   print(df)
    
-   try:
-      scan_package(event_data=event_data)
-   except Exception as e:
-      print("todo: post to nada-alerts")
-      raise
+   #try:
+   #   scan_package(event_data=event_data)
+   #except Exception as e:
+   #   print("todo: post to nada-alerts")
+   #   raise
