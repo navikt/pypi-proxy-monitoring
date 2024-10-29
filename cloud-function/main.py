@@ -81,9 +81,15 @@ def create_slack_message(package_name: str, package_version: str, scan_report: s
 
 def write_scan_table(log_insert_id: str, scan_status: str, cve: str) -> None:
     client = BQClient()
-    query = f"INSERT INTO knada-dev.pypi_proxy_data.package_installations(log_insert_id,scan_status,cve) VALUES('{log_insert_id}','{scan_status}','{cve}')"
-    print("insert query", query)
-    res = client.query_and_wait(query)
+    rows_to_insert = [
+        {"log_insert_id": log_insert_id, "scan_status": scan_status, "cve": cve},
+    ]
+
+    errors = client.insert_rows_json("knada-dev.pypi_proxy_data.package_installations_scan", rows_to_insert)
+    if errors == []:
+        print("successful insert")
+    else:
+        print("Encountered errors while inserting rows: {}".format(errors))
 
 
 @functions_framework.cloud_event
