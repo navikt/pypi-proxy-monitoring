@@ -20,8 +20,8 @@ def scan_package(package_name: str, package_version: str) -> Tuple[bool, str]:
     with open(tmp.name, 'w') as f:
         f.write(package_and_version)
 
-    logging.info(f"Scanning {package_and_version}")
-    result = subprocess.run(["pip-audit", "-r", tmp.name, "-l", "--cache-dir", "/tmp"], capture_output=True)
+    print(f"Scanning {package_and_version}")
+    result = subprocess.run(["pip-audit", "-r", tmp.name, "-l", "--cache-dir", "/tmp", "-f", "json"], capture_output=True)
     if result.returncode != 0:
         scan_report = f"{result.stderr.decode('utf-8')}\n{result.stdout.decode('utf-8')}"
     else:
@@ -79,6 +79,13 @@ def create_slack_message(package_name: str, package_version: str, scan_report: s
         }
     ]
 
+def write_scan_table(log_insert_id: str, scan_status: str, cve: str) -> None:
+    client = BQClient()
+    query = f"INSERT INTO knada-dev.pypi_proxy_data.package_installations(log_insert_id,scan_status,cve) VALUES('{log_insert_id}','{scan_status}','{cve}')"
+    print("insert query", query)
+    res = client.query_and_wait(query)
+
+
 @functions_framework.cloud_event
 def entrypoint(cloud_event):
     event_data = json.loads(base64.b64decode(cloud_event.data["message"]["data"]))
@@ -94,6 +101,7 @@ def entrypoint(cloud_event):
         print("scanning package", f"{r[0]}=={r[1]}")
         try:
             has_vulnerability, scan_report = scan_package(r[0], r[1])
+            write_scan_table(insert_id, str(has_vulnerability), scan_report)
             if has_vulnerability:
                 notify_user(r[0], r[1], r[2], scan_report=scan_report)
         except Exception as e:
