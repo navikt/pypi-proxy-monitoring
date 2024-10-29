@@ -123,7 +123,7 @@ def entrypoint(cloud_event):
    insert_id = event_data["insertId"]
 
    client = BQClient()
-   query = f"SELECT package, version, timestamp FROM `knada-dev.pypi_proxy_data.package_installations` WHERE log_insert_id = '{insert_id}'"
+   query = f"SELECT package, version, install_timestamp FROM `knada-dev.pypi_proxy_data.package_installations` WHERE log_insert_id = '{insert_id}'"
    print("query", query)
    df = client.query_and_wait(query).to_dataframe()
 
