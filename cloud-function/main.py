@@ -27,7 +27,7 @@ def scan_package(package_name: str, package_version: str) -> Tuple[bool, str]:
     else:
         scan_report = result.stderr.decode('utf-8')
 
-    logging.info(scan_report)
+    print(scan_report)
 
     return result.returncode != 0, scan_report
 
@@ -90,11 +90,12 @@ def entrypoint(cloud_event):
     query = f"SELECT package, version, user_email FROM `knada-dev.pypi_proxy_data.package_installations` WHERE log_insert_id = '{insert_id}'"
     res = client.query_and_wait(query)
 
-    print("scanning package", f"{res[0]}=={res[1]}")
-    try:
-        has_vulnerability, scan_report = scan_package(res[0], res[1])
-        if has_vulnerability:
-            notify_user(res[0], res[1], res[2], scan_report=scan_report)
-    except Exception as e:
-        print("todo: post to nada-alerts")
-        raise
+    for r in res:
+        print("scanning package", f"{r[0]}=={r[1]}")
+        try:
+            has_vulnerability, scan_report = scan_package(r[0], r[1])
+            if has_vulnerability:
+                notify_user(r[0], r[1], r[2], scan_report=scan_report)
+        except Exception as e:
+            print("todo: post to nada-alerts")
+            raise
