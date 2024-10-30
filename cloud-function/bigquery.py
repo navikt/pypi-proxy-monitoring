@@ -6,26 +6,15 @@ def fetch_unpacked_package_installation_info(log_insert_id: str) -> Tuple[str, s
     query = f"SELECT package, version, user_email FROM `knada-dev.pypi_proxy_data.package_installations` WHERE log_insert_id = '{log_insert_id}'"
     res = client.query_and_wait(query)
 
-    row = [r for r in res]
-    if len(row) == 1:
-        package_data = row[0]
+    rows = [r for r in res]
+    if len(rows) == 1:
+        package_data = rows[0]
         return package_data[0], package_data[1], package_data[2]
 
-    raise Exception(f"unable to read unpacked data for log_insert_id = '{log_insert_id}'")
+    raise Exception(f"unable to read unpacked data for log_insert_id = '{log_insert_id}', length of view query results was {len(rows)}")
 
 
 def persist_scan_results(log_insert_id: str, scan_status: str, cve: str) -> None:
     client = Client()
-    rows_to_insert = [
-        {
-            "log_insert_id": log_insert_id, 
-            "scan_status": scan_status, 
-            "cve": cve,
-        },
-    ]
-
-    errors = client.insert_rows_json("knada-dev.pypi_proxy_data.package_installations_scan", rows_to_insert)
-    if errors == []:
-        print("successful insert")
-    else:
-        raise Exception(f"unable to write scan results for log insert id '{log_insert_id}': {errors}")
+    query = f"INSERT INTO `knada-dev.pypi_proxy_data.package_installations` (log_insert_id,scan_status,cve) VALUES ('{log_insert_id}','{scan_status}','{cve}') "
+    client.query_and_wait(query)
