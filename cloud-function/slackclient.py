@@ -4,7 +4,7 @@ from google.cloud.secretmanager import SecretManagerServiceClient
 from slack_sdk import WebClient
 
 
-def notify_user(package_name: str, package_version: str, user_email: str, scan_report: str) -> None:
+def notify_user(package_name: str, package_version: str, user_email: str, vulnerabilities: list) -> None:
     slack_token = _get_slack_token()
 
     client = WebClient(token=slack_token)
@@ -16,7 +16,7 @@ def notify_user(package_name: str, package_version: str, user_email: str, scan_r
     client.chat_postMessage(
         channel=user_id,
         text="sårbarhet oppdaget :eyes:",
-        blocks=_create_user_notification(package_name=package_name, package_version=package_version, scan_report=scan_report)
+        blocks=_create_user_notification(package_name=package_name, package_version=package_version, vulnerabilities=vulnerabilities)
     )
 
 
@@ -44,7 +44,7 @@ def _get_slack_token() -> str:
     return response.payload.data.decode("UTF-8")
 
 
-def _create_user_notification(package_name: str, package_version: str, scan_report: dict) -> list:
+def _create_user_notification(package_name: str, package_version: str, vulnerabilities: list) -> list:
     message_blocks = []
     message_blocks.append(
         {
@@ -56,26 +56,24 @@ def _create_user_notification(package_name: str, package_version: str, scan_repo
         }
     )
 
-    for dep in scan_report["dependencies"]:
-        for vuln in dep["vulns"]:
-            cve_link = f"<https://osv.dev/vulnerability/{vuln.get('id')}|{vuln.get('id')}>"
-            message_blocks.append(
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn", 
-                        "text": 
+    for vuln in vulnerabilities:
+        message_blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn", 
+                    "text": 
 f"""
-Gjelder `{dep["name"]}=={dep["version"]}`:
-_*CVE:*_ {cve_link} ({vuln.get("aliases")})
+Gjelder `{vuln["name"]}=={vuln["version"]}`:
+_*CVE:*_ {vuln.get("cve_link")} ({vuln.get("cve_aliases")})
 _*Fix versions:*_ {vuln.get("fix_versions")}
 ```
 {vuln.get("description")}
 ```
 """
-                        }
                 }
-            )
+            }
+        )
 
     return message_blocks
 
