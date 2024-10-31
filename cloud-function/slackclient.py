@@ -64,7 +64,7 @@ def _create_user_notification(package_name: str, package_version: str, scan_repo
                     "text": {
                         "type": "mrkdwn", 
                         "text": 
-f""""
+f"""
 ```
 {vuln["name"]}=={vuln["version"]}:
 CVE: {vuln.get("id")} ({vuln.get("aliases")})
