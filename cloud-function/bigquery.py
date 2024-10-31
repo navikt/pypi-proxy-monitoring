@@ -15,7 +15,7 @@ def fetch_unpacked_package_installation_info(log_insert_id: str) -> Tuple[str, s
     raise Exception(f"unable to read unpacked data for log_insert_id = '{log_insert_id}', length of view query results was {len(rows)}")
 
 
-def persist_scan_results(log_insert_id: str, has_vulnerabilities: str, report: str) -> None:
+def persist_scan_results(log_insert_id: str, has_vulnerabilities: bool, report: str) -> None:
     client = Client()
 
     scan_timestamp = datetime.now().isoformat()

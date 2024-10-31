@@ -18,7 +18,7 @@ def entrypoint(cloud_event):
         package_name, package_version, user_email = fetch_unpacked_package_installation_info(log_insert_id=log_insert_id)
 
         has_vulnerability, scan_report = scan_package(package_name=package_name, package_version=package_version)
-        persist_scan_results(log_insert_id, str(has_vulnerability), scan_report)
+        persist_scan_results(log_insert_id, has_vulnerability, scan_report)
         if has_vulnerability:
             notify_user(package_name=package_name, package_version=package_version, user_email=user_email, scan_report=scan_report)
 
