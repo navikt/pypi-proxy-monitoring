@@ -6,8 +6,7 @@ on:
       - 'main'
     paths:
       - .github/workflows/deploy.yaml
-      - cloud-function/main.py
-      - cloud-function/requirements.txt
+      - cloud-function/**
 
 jobs:
   deploy-dev:
