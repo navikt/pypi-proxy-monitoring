@@ -23,3 +23,4 @@ def persist_scan_results(log_insert_id: str, has_vulnerabilities: bool, report: 
     scan_timestamp = datetime.now().isoformat()
     query = f"INSERT INTO `knada-dev.pypi_proxy_data.package_installations_scan` VALUES ('{log_insert_id}',{has_vulnerabilities},False,'{scan_timestamp}','{json.dumps(report).replace("'","\\'")}')"
     client.query_and_wait(query)
+ 

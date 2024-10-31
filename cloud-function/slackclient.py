@@ -51,13 +51,14 @@ def _create_user_notification(package_name: str, package_version: str, scan_repo
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f":warning: _*Sårbarhet oppdaget i pakke `{package_name}=={package_version}`*_",
+                "text": f":warning: _*Sårbarhet oppdaget i pakke `{package_name}=={package_version}`*_\n_Du har installert denne pakken nylig på enten din Knada Notebook eller Cloud Workstation_",
             }
         }
     )
 
     for dep in scan_report["dependencies"]:
         for vuln in dep["vulns"]:
+            cve_link = f"[{vuln.get('id')}](https://osv.dev/vulnerability/{vuln.get('id')})"
             message_blocks.append(
                 {
                     "type": "section",
@@ -66,7 +67,7 @@ def _create_user_notification(package_name: str, package_version: str, scan_repo
                         "text": 
 f"""
 Gjelder `{dep["name"]}=={dep["version"]}`:
-_*CVE:*_ {vuln.get("id")} ({vuln.get("aliases")})
+_*CVE:*_ {cve_link} ({vuln.get("aliases")})
 _*Fix versions:*_ {vuln.get("fix_versions")}
 ```
 {vuln.get("description")}
