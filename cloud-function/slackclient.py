@@ -58,7 +58,7 @@ def _create_user_notification(package_name: str, package_version: str, scan_repo
 
     for dep in scan_report["dependencies"]:
         for vuln in dep["vulns"]:
-            cve_link = f"[{vuln.get('id')}](https://osv.dev/vulnerability/{vuln.get('id')})"
+            cve_link = f"<https://osv.dev/vulnerability/{vuln.get('id')}|{vuln.get('id')}>"
             message_blocks.append(
                 {
                     "type": "section",
