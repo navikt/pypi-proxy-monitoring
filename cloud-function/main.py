@@ -27,7 +27,7 @@ def entrypoint(cloud_event):
         raise
 
 
-def scan_package(package_name: str, package_version: str) -> Tuple[bool, str]:
+def scan_package(package_name: str, package_version: str) -> Tuple[bool, dict]:
     package_and_version = f"{package_name}=={package_version}"
     tmp = tempfile.NamedTemporaryFile()
     with open(tmp.name, 'w') as f:
@@ -37,4 +37,4 @@ def scan_package(package_name: str, package_version: str) -> Tuple[bool, str]:
     result = subprocess.run(["pip-audit", "-r", tmp.name, "-l", "--cache-dir", "/tmp", "-f", "json"], capture_output=True)
     print(result.stderr.decode('utf-8'))
 
-    return result.returncode != 0, result.stdout.decode('utf-8')
+    return result.returncode != 0, json.loads(result.stdout.decode('utf-8'))
