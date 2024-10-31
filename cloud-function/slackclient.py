@@ -65,11 +65,11 @@ def _create_user_notification(package_name: str, package_version: str, scan_repo
                         "type": "mrkdwn", 
                         "text": 
 f"""
+Gjelder `{dep["name"]}=={dep["version"]}`:
+_*CVE:*_ {vuln.get("id")} ({vuln.get("aliases")})
+_*Fix versions:*_ {vuln.get("fix_versions")}
 ```
-{dep["name"]}=={dep["version"]}:
-CVE: {vuln.get("id")} ({vuln.get("aliases")})
-Description: {vuln.get("description")}
-Fix versions: {vuln.get("fix_versions")}
+{vuln.get("description")}
 ```
 """
                         }
