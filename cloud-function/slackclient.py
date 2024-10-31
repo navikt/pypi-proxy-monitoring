@@ -44,7 +44,7 @@ def _get_slack_token() -> str:
     return response.payload.data.decode("UTF-8")
 
 
-def _create_user_notification(package_name: str, package_version: str, scan_report: str) -> list:
+def _create_user_notification(package_name: str, package_version: str, scan_report: dict) -> list:
     message_blocks = []
     message_blocks.append(
         {
@@ -56,8 +56,7 @@ def _create_user_notification(package_name: str, package_version: str, scan_repo
         }
     )
 
-    scan_data = json.loads(scan_report)
-    for dep in scan_data["dependencies"]:
+    for dep in scan_report["dependencies"]:
         if len(dep["vulns"]) > 0:
             message_blocks.append(
                 {

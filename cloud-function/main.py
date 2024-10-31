@@ -23,7 +23,8 @@ def entrypoint(cloud_event):
             notify_user(package_name=package_name, package_version=package_version, user_email=user_email, scan_report=scan_report)
 
     except Exception as e:
-        notify_nada(log_insert_id, e)
+        print("would have notified")
+        #notify_nada(log_insert_id, e)
         raise
 
 
