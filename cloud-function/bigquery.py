@@ -1,5 +1,6 @@
 from google.cloud.bigquery import Client
 from typing import Tuple
+from datetime import datetime
 
 def fetch_unpacked_package_installation_info(log_insert_id: str) -> Tuple[str, str, str]:
     client = Client()
@@ -14,7 +15,9 @@ def fetch_unpacked_package_installation_info(log_insert_id: str) -> Tuple[str, s
     raise Exception(f"unable to read unpacked data for log_insert_id = '{log_insert_id}', length of view query results was {len(rows)}")
 
 
-def persist_scan_results(log_insert_id: str, scan_status: str, cve: str) -> None:
+def persist_scan_results(log_insert_id: str, has_vulnerabilities: str, report: str) -> None:
     client = Client()
-    query = f"INSERT INTO `knada-dev.pypi_proxy_data.package_installations` (log_insert_id,scan_status,cve) VALUES ('{log_insert_id}','{scan_status}','{cve}') "
+
+    scan_timestamp = datetime.now().isoformat()
+    query = f"INSERT INTO `knada-dev.pypi_proxy_data.package_installations_scan` VALUES ('{log_insert_id}',{has_vulnerabilities},False,'{scan_timestamp}','{report}')"
     client.query_and_wait(query)

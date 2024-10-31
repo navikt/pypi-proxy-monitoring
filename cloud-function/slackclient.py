@@ -1,3 +1,4 @@
+import json
 import google_crc32c
 from google.cloud.secretmanager import SecretManagerServiceClient
 from slack_sdk import WebClient
@@ -9,7 +10,7 @@ def notify_user(package_name: str, package_version: str, user_email: str, scan_r
     client = WebClient(token=slack_token)
     user = client.users_lookupByEmail(email=user_email)
     if not user["ok"]:
-        raise Exception("todo: user not found in slack throw exception")
+        raise Exception(f"slack lookup user from email: user {user_email} not found in slack")
 
     user_id = user["user"]["id"]
     client.chat_postMessage(
@@ -44,22 +45,39 @@ def _get_slack_token() -> str:
 
 
 def _create_user_notification(package_name: str, package_version: str, scan_report: str) -> list:
-    return [
+    message_blocks = []
+    message_blocks.append(
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": f":warning: _*Sårbarhet oppdaget i pakke `{package_name}=={package_version}`*_",
             }
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn", 
-                "text": f"```{scan_report}```",
-            }
         }
-    ]
+    )
+
+    scan_data = json.loads(scan_report)
+    for dep in scan_data["dependencies"]:
+        if len(dep["vulns"]) > 0:
+            message_blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn", 
+                        "text": 
+f""""
+```
+_*{dep["name"]}=={dep["version"]}*_
+CVE: {dep.get("id")} ({dep.get("aliases")})
+Description: {dep.get("description")}
+Fix versions: {dep.get("fix_versions")}
+```
+"""
+                    }
+                }
+            )
+
+    return message_blocks
 
 
 def _create_nada_notification(log_insert_id: str, error: Exception) -> list:
