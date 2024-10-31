@@ -57,14 +57,13 @@ def _create_user_notification(package_name: str, package_version: str, scan_repo
     )
 
     for dep in scan_report["dependencies"]:
-        if len(dep["vulns"]) > 0:
-            for vuln in dep["vulns"]:
-                message_blocks.append(
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn", 
-                            "text": 
+        for vuln in dep["vulns"]:
+            message_blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn", 
+                        "text": 
 f""""
 ```
 {vuln["name"]}=={vuln["version"]}:
