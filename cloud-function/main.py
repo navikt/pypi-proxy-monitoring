@@ -29,7 +29,7 @@ def entrypoint(cloud_event):
 
     except Exception as e:
         error_slack_channel = os.environ["ERROR_SLACK_CHANNEL"]
-        #notify_nada(gsm_secret_path, error_slack_channel, log_insert_id, e)
+        notify_nada(gsm_secret_path, error_slack_channel, log_insert_id, e)
         raise
 
 
