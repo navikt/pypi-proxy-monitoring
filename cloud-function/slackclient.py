@@ -4,8 +4,8 @@ from google.cloud.secretmanager import SecretManagerServiceClient
 from slack_sdk import WebClient
 
 
-def notify_user(package_name: str, package_version: str, user_email: str, vulnerabilities: list) -> None:
-    slack_token = _get_slack_token()
+def notify_user(gsm_secret_path: str, package_name: str, package_version: str, user_email: str, vulnerabilities: list) -> None:
+    slack_token = _get_slack_token(gsm_secret_path)
 
     client = WebClient(token=slack_token)
     user = client.users_lookupByEmail(email=user_email)
@@ -20,21 +20,20 @@ def notify_user(package_name: str, package_version: str, user_email: str, vulner
     )
 
 
-def notify_nada(log_insert_id: str, error: Exception) -> None:
-    slack_token = _get_slack_token()
+def notify_nada(gsm_secret_path: str, slack_channel: str, log_insert_id: str, error: Exception) -> None:
+    slack_token = _get_slack_token(gsm_secret_path)
 
     client = WebClient(token=slack_token)
     client.chat_postMessage(
-        channel="#nada-alerts-dev",
+        channel=slack_channel,
         text=":warning: PYPI proxy sårbarhetsscanner feiler",
         blocks=_create_nada_notification(log_insert_id, error)
     )
 
 
-def _get_slack_token() -> str:
+def _get_slack_token(gsm_secret_path: str) -> str:
     client = SecretManagerServiceClient()
-    name = f"projects/knada-dev/secrets/pypi-proxy-slack-token/versions/latest"
-    response = client.access_secret_version(request={"name": name})
+    response = client.access_secret_version(request={"name": gsm_secret_path})
 
     crc32c = google_crc32c.Checksum()
     crc32c.update(response.payload.data)

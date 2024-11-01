@@ -39,4 +39,5 @@ jobs:
           --build-service-account=projects/knada-dev/serviceAccounts/pypi-proxy-monitoring-build@knada-dev.iam.gserviceaccount.com \
           --run-service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
           --memory=512MB \
+          --env-vars-file=.github/workflows/env/dev.yaml \
           --max-instances=20

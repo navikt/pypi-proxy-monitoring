@@ -1,3 +1,4 @@
+import os
 import json
 import base64
 import tempfile
@@ -14,17 +15,21 @@ def entrypoint(cloud_event):
     event_data = json.loads(base64.b64decode(cloud_event.data["message"]["data"]))
 
     try:
+        package_data_view_uri = os.environ["PACKAGE_DATA_VIEW_URI"]
+        scan_results_table_uri = os.environ["SCAN_RESULTS_TABLE_URI"]
+        gsm_secret_path = os.environ["GSM_SECRET_PATH"]
         log_insert_id = event_data["insertId"]
-        package_name, package_version, user_email = fetch_unpacked_package_installation_info(log_insert_id=log_insert_id)
+        package_name, package_version, user_email = fetch_unpacked_package_installation_info(table_uri=package_data_view_uri, log_insert_id=log_insert_id)
 
         has_vulnerability, raw_scan_report = scan_package(package_name=package_name, package_version=package_version)
         vulnerabilities = process_report(raw_report=raw_scan_report)
-        persist_scan_results(log_insert_id, has_vulnerability, raw_scan_report, vulnerabilities)
+        persist_scan_results(table_uri=scan_results_table_uri, log_insert_id=log_insert_id, has_vulnerabilities=has_vulnerability, report=raw_scan_report, vulnerabilities=vulnerabilities)
         if has_vulnerability:
-            notify_user(package_name=package_name, package_version=package_version, user_email=user_email, vulnerabilities=vulnerabilities)
+            notify_user(gsm_secret_path=gsm_secret_path, package_name=package_name, package_version=package_version, user_email=user_email, vulnerabilities=vulnerabilities)
 
     except Exception as e:
-        notify_nada(log_insert_id, e)
+        error_slack_channel = os.environ["ERROR_SLACK_CHANNEL"]
+        notify_nada(gsm_secret_path, error_slack_channel, log_insert_id, e)
         raise
 
 
