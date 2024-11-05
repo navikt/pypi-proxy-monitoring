@@ -4,7 +4,7 @@ from typing import Tuple
 from datetime import datetime
 from time import sleep
 
-MAX_NUM_READ_RETRIES = 3
+MAX_NUM_READ_RETRIES = 5
 
 def fetch_unpacked_package_installation_info(table_uri: str, log_insert_id: str) -> Tuple[str, str, str]:
     client = Client()
@@ -18,7 +18,7 @@ def fetch_unpacked_package_installation_info(table_uri: str, log_insert_id: str)
             package_data = rows[0]
             return package_data[0], package_data[1], package_data[2]
         
-        sleep(1)
+        sleep(5)
 
     raise Exception(f"unable to read unpacked data for log_insert_id = '{log_insert_id}', length of view query results was {len(rows)}")
 
