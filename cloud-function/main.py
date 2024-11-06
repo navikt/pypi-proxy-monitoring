@@ -15,6 +15,8 @@ def entrypoint(request):
     print(request)
     print("ok")
 
+    return "ok"
+
     # event_data = json.loads(base64.b64decode(cloud_event.data["message"]["data"]))
 
     # try:
