@@ -32,7 +32,7 @@ jobs:
           --gen2 \
           --source=cloud-function \
           --entry-point=entrypoint \
-          --trigger-topic=pypi-proxy-audit-topic \
+          --trigger-http \
           --region=europe-north1 \
           --runtime=python312 \
           --service-account=cloud-run-invoker@knada-dev.iam.gserviceaccount.com \
