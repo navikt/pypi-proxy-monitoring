@@ -1,4 +1,4 @@
-PACKAGE_DATA_VIEW_URI: knada-dev.pypi_proxy_data.package_installations
+PACKAGE_DATA_VIEW_URI: knada-dev.pypi_proxy_data.unscanned_package_installations
 SCAN_RESULTS_TABLE_URI: knada-dev.pypi_proxy_data.package_installations_scan
 GSM_SECRET_PATH: projects/knada-dev/secrets/pypi-proxy-slack-token/versions/latest
 ERROR_SLACK_CHANNEL: "#nada-alerts-dev"

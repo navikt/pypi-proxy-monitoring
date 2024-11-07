@@ -4,7 +4,7 @@ from google.cloud.secretmanager import SecretManagerServiceClient
 from slack_sdk import WebClient
 
 
-def notify_user(gsm_secret_path: str, package_name: str, package_version: str, user_email: str, vulnerabilities: list) -> None:
+def notify_user(gsm_secret_path: str, user_email: str, vulnerabilities: list) -> None:
     slack_token = _get_slack_token(gsm_secret_path)
 
     client = WebClient(token=slack_token)
@@ -12,23 +12,31 @@ def notify_user(gsm_secret_path: str, package_name: str, package_version: str, u
     if not user["ok"]:
         raise Exception(f"slack lookup user from email: user {user_email} not found in slack")
 
+    attachments = []
+    for vuln in vulnerabilities:
+        attachments += _create_user_notification(package_name=vuln["package"], package_version=vuln["version"], vulnerabilities=vuln["vulnerabilities"])
+
     user_id = user["user"]["id"]
-    client.chat_postMessage(
-        channel=user_id,
-        text="sårbarhet oppdaget :eyes:",
-        blocks=_create_user_notification(package_name=package_name, package_version=package_version, vulnerabilities=vulnerabilities)
+    res = client.chat_postMessage(
+       channel=user_id,
+       attachments=attachments,
     )
+
+    if res.status_code != 200:
+        raise Exception(f"slack chat.postMessage failed: {res.status_code} {res.data}")
 
 
 def notify_nada(gsm_secret_path: str, slack_channel: str, log_insert_id: str, error: Exception) -> None:
     slack_token = _get_slack_token(gsm_secret_path)
 
     client = WebClient(token=slack_token)
-    client.chat_postMessage(
+    res = client.chat_postMessage(
         channel=slack_channel,
         text=":warning: PYPI proxy sårbarhetsscanner feiler",
         blocks=_create_nada_notification(log_insert_id, error)
     )
+    if res.status_code != 200:
+        raise Exception(f"slack chat.postMessage failed: {res.status_code} {res.data}")
 
 
 def _get_slack_token(gsm_secret_path: str) -> str:
@@ -44,40 +52,33 @@ def _get_slack_token(gsm_secret_path: str) -> str:
 
 
 def _create_user_notification(package_name: str, package_version: str, vulnerabilities: list) -> list:
-    message_blocks = []
-    message_blocks.append(
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f":warning: _*Sårbarhet oppdaget i pakke `{package_name}=={package_version}`*_\n_Du har installert denne pakken nylig på enten din Knada Notebook eller Cloud Workstation_",
-            }
-        }
-    )
-
+    fields = []
     for vuln in vulnerabilities:
-        message_blocks.append(
+        fields.append(
             {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn", 
-                    "text": 
+                "short": False,
+                "value":
 f"""
-Gjelder `{vuln["name"]}=={vuln["version"]}`:
-_*CVE:*_ {vuln.get("cve_link")} ({vuln.get("cve_aliases")})
-_*Fix versions:*_ {vuln.get("fix_versions")}
-```
-{vuln.get("description")}
-```
+Gjelder `{vuln["name"]}=={vuln["version"]}` (<https://pypi.org/project/{vuln["name"]}/{vuln["version"]}|https://pypi.org/project/{vuln["name"]}/{vuln["version"]}>)
+Installasjonstidspunkt: `{vuln.get("install_timestamp")}`
+_*CVE:*_ {vuln.get("cve_link")} (aliaser: `{", ".join(vuln.get("cve_aliases"))}`)
+_*Fiks versjoner:*_ `{", ".join(vuln.get("fix_versions"))}`
 """
-                }
             }
         )
 
-    return message_blocks
+    return [
+        {
+            "fallback": "Sårbarhet oppdaget :eyes:",
+            "mrkdwn_in": ["fields", "pretext", "title"],
+            "color": "danger",
+            "pretext": f":warning: _*Sårbarhet oppdaget i pakke `{package_name}=={package_version}`*_\n_Du har installert denne pakken nylig på enten din Knada Notebook eller Cloud Workstation_",
+            "fields": fields,
+            "footer": "Nada"
+        }
+    ]
 
-
-def _create_nada_notification(log_insert_id: str, error: Exception) -> list:
+def _create_nada_notification(log_insert_ids: list, error: Exception) -> list:
     return [
         {
             "type": "section",
@@ -90,7 +91,7 @@ def _create_nada_notification(log_insert_id: str, error: Exception) -> list:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"```log_insert_id={log_insert_id}\nerror={error}```",
+                "text": f"```Påvirkede log_insert_ids: `{", ".join(log_insert_ids)}`\nerror={error}```",
             }
         }
     ]
