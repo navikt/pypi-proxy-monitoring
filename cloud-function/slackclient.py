@@ -14,7 +14,7 @@ def notify_user(gsm_secret_path: str, user_email: str, vulnerabilities: list) ->
 
     attachments = []
     for vuln in vulnerabilities:
-        attachments += _create_user_notification(package_name=vuln["package"], package_version=vuln["version"], vulnerabilities=vuln["vulnerabilities"])
+        attachments += _create_user_notification(package_name=vuln["package"], package_version=vuln["version"], install_timestamp=vuln["install_timestamp"], vulnerabilities=vuln["vulnerabilities"])
 
     user_id = user["user"]["id"]
     res = client.chat_postMessage(
@@ -51,7 +51,7 @@ def _get_slack_token(gsm_secret_path: str) -> str:
     return response.payload.data.decode("UTF-8")
 
 
-def _create_user_notification(package_name: str, package_version: str, vulnerabilities: list) -> list:
+def _create_user_notification(package_name: str, package_version: str, install_timestamp: str, vulnerabilities: list) -> list:
     fields = []
     for vuln in vulnerabilities:
         fields.append(
@@ -60,7 +60,7 @@ def _create_user_notification(package_name: str, package_version: str, vulnerabi
                 "value":
 f"""
 Gjelder `{vuln["name"]}=={vuln["version"]}` (<https://pypi.org/project/{vuln["name"]}/{vuln["version"]}|https://pypi.org/project/{vuln["name"]}/{vuln["version"]}>)
-Installasjonstidspunkt: `{vuln.get("install_timestamp")}`
+Installasjonstidspunkt: `{install_timestamp}`
 _*CVE:*_ {vuln.get("cve_link")} (aliaser: `{", ".join(vuln.get("cve_aliases"))}`)
 _*Fiks versjoner:*_ `{", ".join(vuln.get("fix_versions"))}`
 """

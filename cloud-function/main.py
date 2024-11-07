@@ -5,7 +5,6 @@ import tempfile
 import subprocess
 import functions_framework
 from typing import Tuple
-from pprint import pprint
 
 from slackclient import notify_user, notify_nada
 from bigquery import fetch_unscanned_installations, persist_scan_results
@@ -23,7 +22,7 @@ def entrypoint(request):
         for user_email, package_installations in unscanned.items():
             print(f"Scanning newly installed packages by user {user_email}")
             print(f"Packages:")
-            pprint(package_installations)
+            print(package_installations)
 
             vulnerabilities = []
             for package_installation in package_installations:
