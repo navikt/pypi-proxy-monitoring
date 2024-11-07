@@ -2,7 +2,6 @@ import json
 from google.cloud.bigquery import Client
 from datetime import datetime
 
-
 def fetch_unscanned_installations(table_uri: str) -> dict:
     client = Client()
     query = f"SELECT user_email, package, version, install_timestamp, log_insert_id FROM `{table_uri}`"
