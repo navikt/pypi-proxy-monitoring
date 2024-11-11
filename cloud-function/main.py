@@ -48,7 +48,7 @@ def entrypoint(request):
         error_slack_channel = os.environ["ERROR_SLACK_CHANNEL"]
         log_insert_ids = [package_installation["log_insert_id"] for package_installation in package_installations]
         print("would have notified nada here")
-        #notify_nada(gsm_secret_path, error_slack_channel, log_insert_ids, e)
+        notify_nada(gsm_secret_path, error_slack_channel, log_insert_ids, e)
         
     return "OK"
 
