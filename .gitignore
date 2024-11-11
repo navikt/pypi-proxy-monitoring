@@ -26,3 +26,8 @@ go.work.sum
 
 # asdf
 .tool-versions
+
+__pycache__/
+pyvenv.cfg
+bin/
+lib/
