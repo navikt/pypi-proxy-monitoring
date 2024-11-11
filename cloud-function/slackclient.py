@@ -4,7 +4,7 @@ from google.cloud.secretmanager import SecretManagerServiceClient
 from slack_sdk import WebClient
 
 
-def notify_user(gsm_secret_path: str, user_email: str, vulnerabilities: list) -> None:
+def notify_user(gsm_secret_path: str, user_email: str, vulnerability: dict) -> None:
     slack_token = _get_slack_token(gsm_secret_path)
 
     client = WebClient(token=slack_token)
@@ -12,9 +12,12 @@ def notify_user(gsm_secret_path: str, user_email: str, vulnerabilities: list) ->
     if not user["ok"]:
         raise Exception(f"slack lookup user from email: user {user_email} not found in slack")
 
-    attachments = []
-    for vuln in vulnerabilities:
-        attachments += _create_user_notification(package_name=vuln["package"], package_version=vuln["version"], install_timestamp=vuln["install_timestamp"], vulnerabilities=vuln["vulnerabilities"])
+    attachments = _create_user_notification(
+        package_name=vulnerability["package"], 
+        package_version=vulnerability["version"], 
+        install_timestamp=vulnerability["install_timestamp"], 
+        vulnerabilities=vulnerability["vulnerabilities"]
+    )
 
     user_id = user["user"]["id"]
     res = client.chat_postMessage(
