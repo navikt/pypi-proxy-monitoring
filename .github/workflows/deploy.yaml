@@ -71,6 +71,7 @@ jobs:
           --trigger-http \
           --region=europe-north1 \
           --runtime=python312 \
+          --timeout=900s \
           --service-account=cloud-run-invoker@knada-gcp.iam.gserviceaccount.com \
           --build-service-account=projects/knada-gcp/serviceAccounts/pypi-proxy-monitoring-build@knada-gcp.iam.gserviceaccount.com \
           --run-service-account=pypi-proxy-monitoring-runtime@knada-gcp.iam.gserviceaccount.com \
