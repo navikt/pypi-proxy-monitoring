@@ -20,7 +20,6 @@ def entrypoint(request):
 
         for user_email, package_installations in unscanned.items():
             print(f"Scanning newly installed packages by user {user_email}")
-            print(f"Packages:")
             print(package_installations)
 
             for package_installation in package_installations:
