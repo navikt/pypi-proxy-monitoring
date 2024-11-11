@@ -31,7 +31,7 @@ def entrypoint(request):
                 has_vulnerability, raw_scan_report, processed_report = scan_package(package_name=package, package_version=version)
                 persist_scan_results(scan_results_table_uri, package_installation["log_insert_id"], has_vulnerability, raw_scan_report, processed_report)
 
-                if has_vulnerability:
+                if has_vulnerability and user_email.endswith("@nav.no"):
                     vulnerabilities += [{
                         "package": package,
                         "version": version,
