@@ -1,6 +1,5 @@
 import os
 import json
-import base64
 import tempfile
 import subprocess
 import functions_framework
@@ -24,7 +23,6 @@ def entrypoint(request):
             print(f"Packages:")
             print(package_installations)
 
-            vulnerabilities = []
             for package_installation in package_installations:
                 package = package_installation["package"]
                 version = package_installation["version"]
@@ -32,24 +30,20 @@ def entrypoint(request):
                 persist_scan_results(scan_results_table_uri, package_installation["log_insert_id"], has_vulnerability, raw_scan_report, processed_report)
 
                 if has_vulnerability and user_email.endswith("@nav.no"):
-                    vulnerabilities += [{
+                    notify_user(gsm_secret_path, user_email, {
                         "package": package,
                         "version": version,
                         "install_timestamp": package_installation["install_timestamp"],
                         "vulnerabilities": processed_report,
-                    }]
-
-            if len(vulnerabilities) > 0:
-                notify_user(gsm_secret_path, user_email, vulnerabilities)
+                    })
 
     except Exception as e:
-        print(e)
         # Catch whatever exception and notify nada on slack
+        print(e)
         error_slack_channel = os.environ["ERROR_SLACK_CHANNEL"]
-        log_insert_ids = [package_installation["log_insert_id"] for package_installation in package_installations]
-        print("would have notified nada here")
+        log_insert_ids = [package_installation.get("log_insert_id") for package_installation in package_installations]
         #notify_nada(gsm_secret_path, error_slack_channel, log_insert_ids, e)
-        
+
     return "OK"
 
 

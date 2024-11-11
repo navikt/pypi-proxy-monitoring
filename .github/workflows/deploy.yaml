@@ -3,7 +3,7 @@ name: Deploy PYPI proxy monitoring cloud function
 on:
   push:
     branches: 
-      - 'main'
+      - '*'
     paths:
       - .github/workflows/*
       - cloud-function/**
