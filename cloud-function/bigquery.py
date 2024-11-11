@@ -28,7 +28,6 @@ def persist_scan_results(table_uri: str, log_insert_id: str, has_vulnerabilities
             "log_insert_id": log_insert_id, 
             "scan_timestamp": datetime.now().isoformat(),
             "has_vulnerabilities": has_vulnerabilities,
-            "acknowledged_by_user": False,
             "raw_scan_report": json.dumps(report),
             "vulnerabilities": json.dumps(vulnerabilities),
         },
