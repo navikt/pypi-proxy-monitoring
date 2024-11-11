@@ -40,7 +40,7 @@ jobs:
           --run-service-account=pypi-proxy-monitoring-runtime@knada-dev.iam.gserviceaccount.com \
           --memory=512MB \
           --env-vars-file=.github/workflows/env/dev.yaml \
-          --max-instances=20
+          --max-instances=1
 
   deploy-prod:
     permissions:
