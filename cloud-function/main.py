@@ -35,20 +35,22 @@ def entrypoint(request):
 
 
 def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, user_email: str, package_installations: list):
-    print(f"Scanning newly installed packages by user {user_email}")
+    print(f"Scanning {len(package_installations)} newly installed packages by user {user_email}")
     print(package_installations)
 
-    with multiprocessing.Pool() as pool:
-        scan_results = pool.map(scan_package, package_installations)
-        pool.close()
-        pool.join()
+    batch_size = 100
+    for i in range(0, len(package_installations), batch_size):
+        with multiprocessing.Pool() as pool:
+            scan_results = pool.map(scan_package, package_installations[i:i+batch_size])
+            pool.close()
+            pool.join()
 
-    persist_scan_results(scan_results_table_uri, scan_results)
+        persist_scan_results(scan_results_table_uri, scan_results)
 
-    results_with_vulnerabilities = extract_scan_results_with_vulnerabilities(scan_results)
+        results_with_vulnerabilities = extract_scan_results_with_vulnerabilities(scan_results)
 
-    #if len(results_with_vulnerabilities) > 0 and user_email.endswith("@nav.no"):
-    #    notify_user(gsm_secret_path, user_email, results_with_vulnerabilities)
+        #if len(results_with_vulnerabilities) > 0 and user_email.endswith("@nav.no"):
+        #    notify_user(gsm_secret_path, user_email, results_with_vulnerabilities)
 
 
 def extract_scan_results_with_vulnerabilities(scan_results: list[dict]) -> list:
