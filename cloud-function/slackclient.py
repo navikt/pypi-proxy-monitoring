@@ -29,14 +29,14 @@ def notify_user(gsm_secret_path: str, user_email: str, vulnerability: dict) -> N
         raise Exception(f"slack chat.postMessage failed: {res.status_code} {res.data}")
 
 
-def notify_nada(gsm_secret_path: str, slack_channel: str, log_insert_id: str, error: Exception) -> None:
+def notify_nada(gsm_secret_path: str, slack_channel: str, error: Exception) -> None:
     slack_token = _get_slack_token(gsm_secret_path)
 
     client = WebClient(token=slack_token)
     res = client.chat_postMessage(
         channel=slack_channel,
         text=":warning: PYPI proxy sårbarhetsscanner feiler",
-        blocks=_create_nada_notification(log_insert_id, error)
+        blocks=_create_nada_notification(error)
     )
     if res.status_code != 200:
         raise Exception(f"slack chat.postMessage failed: {res.status_code} {res.data}")
@@ -81,7 +81,7 @@ _*Fiks versjoner:*_ `{", ".join(vuln.get("fix_versions"))}`
         }
     ]
 
-def _create_nada_notification(log_insert_ids: list, error: Exception) -> list:
+def _create_nada_notification(error: Exception) -> list:
     return [
         {
             "type": "section",
@@ -94,7 +94,7 @@ def _create_nada_notification(log_insert_ids: list, error: Exception) -> list:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"```Påvirkede log_insert_ids: `{", ".join(log_insert_ids)}`\nerror={error}```",
+                "text": f"```{error}```",
             }
         }
     ]

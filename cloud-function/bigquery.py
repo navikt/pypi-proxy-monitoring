@@ -21,7 +21,7 @@ def fetch_unscanned_installations(table_uri: str) -> Tuple[dict, int]:
             "log_insert_id": package_data[4],
         }]
 
-    return unscanned, count
+    return [{"email": email, "packages": packages} for email, packages in unscanned.items()], count
 
 
 def persist_scan_results(table_uri: str, log_insert_id: str, has_vulnerabilities: bool, report: dict, vulnerabilities: list) -> None:
