@@ -47,8 +47,8 @@ def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, user_email:
 
     results_with_vulnerabilities = extract_scan_results_with_vulnerabilities(scan_results)
 
-    if len(results_with_vulnerabilities) > 0 and user_email.endswith("@nav.no"):
-        notify_user(gsm_secret_path, user_email, results_with_vulnerabilities)
+    #if len(results_with_vulnerabilities) > 0 and user_email.endswith("@nav.no"):
+    #    notify_user(gsm_secret_path, user_email, results_with_vulnerabilities)
 
 
 def extract_scan_results_with_vulnerabilities(scan_results: list[dict]) -> list:
@@ -77,6 +77,7 @@ def scan_package(package_data: dict) -> dict: # Tuple[str, str, bool, dict, dict
 
     return {
         "package_and_version": package_and_version,
+        "install_timestamp": package_data["install_timestamp"],
         "log_insert_id": package_data["log_insert_id"],
         "has_vulnerabilities": result.returncode != 0,
         "raw_scan_report": raw_scan_report,
