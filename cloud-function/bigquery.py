@@ -11,7 +11,9 @@ def fetch_unscanned_installations(table_uri: str) -> Tuple[dict, int]:
     res = client.query_and_wait(query)
 
     unscanned = {}
+    count = 0
     for package_data in res:
+        count += 1
         unscanned[package_data[0]] = unscanned.get(package_data[0], []) + [{
             "package": package_data[1],
             "version": package_data[2],
@@ -19,7 +21,7 @@ def fetch_unscanned_installations(table_uri: str) -> Tuple[dict, int]:
             "log_insert_id": package_data[4],
         }]
 
-    return unscanned, len(res)
+    return unscanned, count
 
 
 def persist_scan_results(table_uri: str, log_insert_id: str, has_vulnerabilities: bool, report: dict, vulnerabilities: list) -> None:
