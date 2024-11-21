@@ -47,13 +47,13 @@ def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, package_ins
         has_vulnerability, raw_scan_report, processed_report = scan_package(package_name=package, package_version=version)
         persist_scan_results(scan_results_table_uri, package_installation["log_insert_id"], has_vulnerability, raw_scan_report, processed_report)
 
-        if has_vulnerability and user_email.endswith("@nav.no"):
-            notify_user(gsm_secret_path, user_email, {
-                "package": package,
-                "version": version,
-                "install_timestamp": package_installation["install_timestamp"],
-                "vulnerabilities": processed_report,
-            })
+        #if has_vulnerability and user_email.endswith("@nav.no"):
+        #    notify_user(gsm_secret_path, user_email, {
+        #        "package": package,
+        #        "version": version,
+        #        "install_timestamp": package_installation["install_timestamp"],
+        #        "vulnerabilities": processed_report,
+        #    })
 
 
 def scan_package(package_name: str, package_version: str) -> Tuple[bool, dict, dict]:
