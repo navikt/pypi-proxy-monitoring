@@ -43,39 +43,39 @@ jobs:
           --env-vars-file=.github/workflows/env/dev.yaml \
           --max-instances=1
 
-  deploy-prod:
-    permissions:
-      contents: read
-      id-token: write
-    runs-on: ubuntu-latest
-    needs:
-      - deploy-dev
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Google auth
-        id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          token_format: access_token
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_PROD }}
-          service_account: ci-cloud-function-deployer@knada-gcp.iam.gserviceaccount.com
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy cloud function
-        run:  |
-          gcloud functions deploy pypi-proxy-monitoring \
-          --no-allow-unauthenticated \
-          --gen2 \
-          --source=cloud-function \
-          --entry-point=entrypoint \
-          --trigger-http \
-          --region=europe-north1 \
-          --runtime=python312 \
-          --timeout=900s \
-          --service-account=cloud-run-invoker@knada-gcp.iam.gserviceaccount.com \
-          --build-service-account=projects/knada-gcp/serviceAccounts/pypi-proxy-monitoring-build@knada-gcp.iam.gserviceaccount.com \
-          --run-service-account=pypi-proxy-monitoring-runtime@knada-gcp.iam.gserviceaccount.com \
-          --memory=1024MB \
-          --env-vars-file=.github/workflows/env/prod.yaml \
-          --max-instances=1
+  # deploy-prod:
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - deploy-dev
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Google auth
+  #       id: auth
+  #       uses: google-github-actions/auth@v2
+  #       with:
+  #         token_format: access_token
+  #         workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_PROD }}
+  #         service_account: ci-cloud-function-deployer@knada-gcp.iam.gserviceaccount.com
+  #     - name: Set up Cloud SDK
+  #       uses: google-github-actions/setup-gcloud@v2
+  #     - name: Deploy cloud function
+  #       run:  |
+  #         gcloud functions deploy pypi-proxy-monitoring \
+  #         --no-allow-unauthenticated \
+  #         --gen2 \
+  #         --source=cloud-function \
+  #         --entry-point=entrypoint \
+  #         --trigger-http \
+  #         --region=europe-north1 \
+  #         --runtime=python312 \
+  #         --timeout=900s \
+  #         --service-account=cloud-run-invoker@knada-gcp.iam.gserviceaccount.com \
+  #         --build-service-account=projects/knada-gcp/serviceAccounts/pypi-proxy-monitoring-build@knada-gcp.iam.gserviceaccount.com \
+  #         --run-service-account=pypi-proxy-monitoring-runtime@knada-gcp.iam.gserviceaccount.com \
+  #         --memory=1024MB \
+  #         --env-vars-file=.github/workflows/env/prod.yaml \
+  #         --max-instances=1

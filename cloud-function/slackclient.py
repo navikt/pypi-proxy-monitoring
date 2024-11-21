@@ -4,7 +4,7 @@ from google.cloud.secretmanager import SecretManagerServiceClient
 from slack_sdk import WebClient
 
 
-def notify_user(gsm_secret_path: str, user_email: str, vulnerability: dict) -> None:
+def notify_user(gsm_secret_path: str, user_email: str, vulnerabilities: list[dict]) -> None:
     slack_token = _get_slack_token(gsm_secret_path)
 
     client = WebClient(token=slack_token)
@@ -12,12 +12,13 @@ def notify_user(gsm_secret_path: str, user_email: str, vulnerability: dict) -> N
     if not user["ok"]:
         raise Exception(f"slack lookup user from email: user {user_email} not found in slack")
 
-    attachments = _create_user_notification(
-        package_name=vulnerability["package"], 
-        package_version=vulnerability["version"], 
-        install_timestamp=vulnerability["install_timestamp"], 
-        vulnerabilities=vulnerability["vulnerabilities"]
-    )
+    attachments = []
+    for vulnerability in vulnerabilities:
+        attachments += _create_user_notification(
+            package_and_version=vulnerability["package_and_version"], 
+            install_timestamp=vulnerability["install_timestamp"], 
+            vulnerabilities=vulnerability["vulnerabilities"]
+        )
 
     user_id = user["user"]["id"]
     res = client.chat_postMessage(
@@ -54,7 +55,7 @@ def _get_slack_token(gsm_secret_path: str) -> str:
     return response.payload.data.decode("UTF-8")
 
 
-def _create_user_notification(package_name: str, package_version: str, install_timestamp: str, vulnerabilities: list) -> list:
+def _create_user_notification(package_and_version: str, install_timestamp: str, vulnerabilities: list) -> list:
     fields = []
     for vuln in vulnerabilities:
         fields.append(
@@ -75,7 +76,7 @@ _*Fiks versjoner:*_ `{", ".join(vuln.get("fix_versions"))}`
             "fallback": "Sårbarhet oppdaget :eyes:",
             "mrkdwn_in": ["fields", "pretext", "title"],
             "color": "danger",
-            "pretext": f":warning: _*Sårbarhet oppdaget i pakke `{package_name}=={package_version}`*_\n_Du har installert denne pakken nylig på enten din Knada Notebook eller Cloud Workstation_",
+            "pretext": f":warning: _*Sårbarhet oppdaget i pakke `{package_and_version}`*_\n_Du har installert denne pakken nylig på enten din Knada Notebook eller Cloud Workstation_",
             "fields": fields,
             "footer": "Nada"
         }

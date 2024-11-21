@@ -6,7 +6,7 @@ from typing import Tuple
 
 def fetch_unscanned_installations(table_uri: str) -> Tuple[dict, int]:
     client = Client()
-    query = f"SELECT user_email, package, version, install_timestamp, log_insert_id FROM `{table_uri}`"
+    query = f"SELECT user_email, package, version, install_timestamp, log_insert_id FROM `{table_uri}` ORDER BY install_timestamp ASC"
 
     res = client.query_and_wait(query)
 
@@ -21,20 +21,21 @@ def fetch_unscanned_installations(table_uri: str) -> Tuple[dict, int]:
             "log_insert_id": package_data[4],
         }]
 
-    return [{"email": email, "packages": packages} for email, packages in unscanned.items()], count
+    return unscanned, count
 
 
-def persist_scan_results(table_uri: str, log_insert_id: str, has_vulnerabilities: bool, report: dict, vulnerabilities: list) -> None:
+def persist_scan_results(table_uri: str, results: list[dict]) -> None:
     client = Client()
 
     rows_to_insert = [
         {
-            "log_insert_id": log_insert_id, 
+            "log_insert_id": res["log_insert_id"], 
             "scan_timestamp": datetime.now().isoformat(),
-            "has_vulnerabilities": has_vulnerabilities,
-            "raw_scan_report": json.dumps(report),
-            "vulnerabilities": json.dumps(vulnerabilities),
-        },
+            "has_vulnerabilities": res["has_vulnerabilities"],
+            "raw_scan_report": json.dumps(res["raw_scan_report"]),
+            "vulnerabilities": json.dumps(res["vulnerabilities"]),
+        }
+        for res in results
     ]
 
     errors = client.insert_rows_json(table_uri, rows_to_insert)

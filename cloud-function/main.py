@@ -23,11 +23,9 @@ def entrypoint(request):
         if num_unscanned > 100:
             notify_nada(gsm_secret_path, error_slack_channel, f"PYPI proxy scanner is unable to catch up, the current number of unscanned installed packages are: {num_unscanned}")
 
-        with multiprocessing.Pool() as pool:
-            f = partial(scan_for_user, gsm_secret_path, scan_results_table_uri)
-            pool.map(f, unscanned)
-            pool.close()
-            pool.join()
+        for user_email, package_installations in unscanned.items():
+            scan_for_user(gsm_secret_path, scan_results_table_uri, user_email, package_installations)
+
     except Exception as e:
         # Catch whatever exception and notify nada on slack
         print(e.with_traceback())
@@ -36,28 +34,38 @@ def entrypoint(request):
     return "OK"
 
 
-def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, package_installations: dict):
-    user_email = package_installations["email"]
+def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, user_email: str, package_installations: list):
     print(f"Scanning newly installed packages by user {user_email}")
     print(package_installations)
 
-    for package_installation in package_installations["packages"]:
-        package = package_installation["package"]
-        version = package_installation["version"]
-        has_vulnerability, raw_scan_report, processed_report = scan_package(package_name=package, package_version=version)
-        persist_scan_results(scan_results_table_uri, package_installation["log_insert_id"], has_vulnerability, raw_scan_report, processed_report)
+    with multiprocessing.Pool() as pool:
+        scan_results = pool.map(scan_package, package_installations)
+        pool.close()
+        pool.join()
 
-        #if has_vulnerability and user_email.endswith("@nav.no"):
-        #    notify_user(gsm_secret_path, user_email, {
-        #        "package": package,
-        #        "version": version,
-        #        "install_timestamp": package_installation["install_timestamp"],
-        #        "vulnerabilities": processed_report,
-        #    })
+    persist_scan_results(scan_results_table_uri, scan_results)
+
+    results_with_vulnerabilities = extract_scan_results_with_vulnerabilities(scan_results)
+
+    if len(results_with_vulnerabilities) > 0 and user_email.endswith("@nav.no"):
+        notify_user(gsm_secret_path, user_email, results_with_vulnerabilities)
 
 
-def scan_package(package_name: str, package_version: str) -> Tuple[bool, dict, dict]:
-    package_and_version = f"{package_name}=={package_version}"
+def extract_scan_results_with_vulnerabilities(scan_results: list[dict]) -> list:
+    scan_results_with_vulnerabilities = {}
+    for res in scan_results:
+        if res["has_vulnerabilities"]:
+            scan_results_with_vulnerabilities[res["package_and_version"]] = {
+                "package_and_version": res["package_and_version"],
+                "install_timestamp": res["install_timestamp"],
+                "vulnerabilities": res["vulnerabilities"],
+            }
+
+    return [scan_result for scan_result in scan_results_with_vulnerabilities.values()]
+
+
+def scan_package(package_data: dict) -> dict: # Tuple[str, str, bool, dict, dict]:
+    package_and_version = f"{package_data['package']}=={package_data['version']}"
     with tempfile.NamedTemporaryFile() as tmp:
         with open(tmp.name, 'w') as f:
             f.write(package_and_version)
@@ -67,7 +75,13 @@ def scan_package(package_name: str, package_version: str) -> Tuple[bool, dict, d
         raw_scan_report = json.loads(result.stdout.decode('utf-8'))
         print(result.stderr.decode('utf-8'))
 
-    return result.returncode != 0, raw_scan_report, process_report(raw_report=raw_scan_report)
+    return {
+        "package_and_version": package_and_version,
+        "log_insert_id": package_data["log_insert_id"],
+        "has_vulnerabilities": result.returncode != 0,
+        "raw_scan_report": raw_scan_report,
+        "vulnerabilities": process_report(raw_report=raw_scan_report),
+    }
 
 
 def process_report(raw_report: dict) -> list:
