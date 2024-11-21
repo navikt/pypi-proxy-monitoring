@@ -15,8 +15,12 @@ def entrypoint(request):
         unscanned_package_data_view_uri = os.environ["PACKAGE_DATA_VIEW_URI"]
         scan_results_table_uri = os.environ["SCAN_RESULTS_TABLE_URI"]
         gsm_secret_path = os.environ["GSM_SECRET_PATH"]
+        error_slack_channel = os.environ["ERROR_SLACK_CHANNEL"]
 
-        unscanned = fetch_unscanned_installations(unscanned_package_data_view_uri)
+        unscanned, num_unscanned = fetch_unscanned_installations(unscanned_package_data_view_uri)
+
+        if num_unscanned > 100:
+            notify_nada(gsm_secret_path, error_slack_channel, [], f"PYPI proxy scanner is unable to catch up, the current number of unscanned installed packages are: {num_unscanned}")
 
         for user_email, package_installations in unscanned.items():
             print(f"Scanning newly installed packages by user {user_email}")
@@ -39,7 +43,6 @@ def entrypoint(request):
     except Exception as e:
         # Catch whatever exception and notify nada on slack
         print(e)
-        error_slack_channel = os.environ["ERROR_SLACK_CHANNEL"]
         log_insert_ids = [package_installation["log_insert_id"] for package_installation in package_installations]
         notify_nada(gsm_secret_path, error_slack_channel, log_insert_ids, e)
         

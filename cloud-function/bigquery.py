@@ -1,8 +1,10 @@
 import json
 from google.cloud.bigquery import Client
 from datetime import datetime
+from typing import Tuple
 
-def fetch_unscanned_installations(table_uri: str) -> dict:
+
+def fetch_unscanned_installations(table_uri: str) -> Tuple[dict, int]:
     client = Client()
     query = f"SELECT user_email, package, version, install_timestamp, log_insert_id FROM `{table_uri}`"
 
@@ -17,7 +19,7 @@ def fetch_unscanned_installations(table_uri: str) -> dict:
             "log_insert_id": package_data[4],
         }]
 
-    return unscanned
+    return unscanned, len(res)
 
 
 def persist_scan_results(table_uri: str, log_insert_id: str, has_vulnerabilities: bool, report: dict, vulnerabilities: list) -> None:
