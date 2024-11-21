@@ -30,14 +30,14 @@ def entrypoint(request):
             pool.join()
     except Exception as e:
         # Catch whatever exception and notify nada on slack
-        print(e)
-        notify_nada(gsm_secret_path, error_slack_channel, e)
+        print(e.with_traceback())
+        notify_nada(gsm_secret_path, error_slack_channel, e.with_traceback())
 
     return "OK"
 
 
 def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, package_installations: dict):
-    user_email = package_installations["user_email"]
+    user_email = package_installations["email"]
     print(f"Scanning newly installed packages by user {user_email}")
     print(package_installations)
 
