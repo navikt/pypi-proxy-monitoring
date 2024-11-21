@@ -58,14 +58,14 @@ def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, package_ins
 
 def scan_package(package_name: str, package_version: str) -> Tuple[bool, dict, dict]:
     package_and_version = f"{package_name}=={package_version}"
-    tmp = tempfile.NamedTemporaryFile()
-    with open(tmp.name, 'w') as f:
-        f.write(package_and_version)
+    with tempfile.NamedTemporaryFile() as tmp:
+        with open(tmp.name, 'w') as f:
+            f.write(package_and_version)
 
-    print(f"Scanning {package_and_version}")
-    result = subprocess.run(["pip-audit", "-r", tmp.name, "-l", "--cache-dir", "/tmp", "-f", "json"], capture_output=True)
-    raw_scan_report = json.loads(result.stdout.decode('utf-8'))
-    print(result.stderr.decode('utf-8'))
+        print(f"Scanning {package_and_version}")
+        result = subprocess.run(["pip-audit", "-r", tmp.name, "-l", "--cache-dir", "/tmp", "-f", "json"], capture_output=True)
+        raw_scan_report = json.loads(result.stdout.decode('utf-8'))
+        print(result.stderr.decode('utf-8'))
 
     return result.returncode != 0, raw_scan_report, process_report(raw_report=raw_scan_report)
 
