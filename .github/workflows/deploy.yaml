@@ -76,6 +76,6 @@ jobs:
           --service-account=cloud-run-invoker@knada-gcp.iam.gserviceaccount.com \
           --build-service-account=projects/knada-gcp/serviceAccounts/pypi-proxy-monitoring-build@knada-gcp.iam.gserviceaccount.com \
           --run-service-account=pypi-proxy-monitoring-runtime@knada-gcp.iam.gserviceaccount.com \
-          --memory=512MB \
+          --memory=1024MB \
           --env-vars-file=.github/workflows/env/prod.yaml \
           --max-instances=1
