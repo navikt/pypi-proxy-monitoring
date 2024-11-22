@@ -28,8 +28,8 @@ def entrypoint(request):
 
     except Exception as e:
         # Catch whatever exception and notify nada on slack
-        print(e.with_traceback())
-        notify_nada(gsm_secret_path, error_slack_channel, e.with_traceback())
+        print(e)
+        notify_nada(gsm_secret_path, error_slack_channel, e)
 
     return "OK"
 
@@ -38,7 +38,7 @@ def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, user_email:
     print(f"Scanning {len(package_installations)} newly installed packages by user {user_email}")
     print(package_installations)
 
-    batch_size = 100
+    batch_size = 50
     for i in range(0, len(package_installations), batch_size):
         with multiprocessing.Pool() as pool:
             scan_results = pool.map(scan_package, package_installations[i:i+batch_size])
