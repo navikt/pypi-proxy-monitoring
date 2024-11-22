@@ -3,13 +3,11 @@ import json
 import tempfile
 import subprocess
 import functions_framework
-from typing import Tuple
+import multiprocessing
 
 from slackclient import notify_user, notify_nada
 from bigquery import fetch_unscanned_installations, persist_scan_results
 
-from functools import partial
-import multiprocessing
 
 @functions_framework.http
 def entrypoint(request):
@@ -66,7 +64,7 @@ def extract_scan_results_with_vulnerabilities(scan_results: list[dict]) -> list:
     return [scan_result for scan_result in scan_results_with_vulnerabilities.values()]
 
 
-def scan_package(package_data: dict) -> dict: # Tuple[str, str, bool, dict, dict]:
+def scan_package(package_data: dict) -> dict:
     package_and_version = f"{package_data['package']}=={package_data['version']}"
     with tempfile.NamedTemporaryFile() as tmp:
         with open(tmp.name, 'w') as f:
@@ -74,7 +72,11 @@ def scan_package(package_data: dict) -> dict: # Tuple[str, str, bool, dict, dict
 
         print(f"Scanning {package_and_version}")
         result = subprocess.run(["pip-audit", "-r", tmp.name, "-l", "--cache-dir", "/tmp", "-f", "json"], capture_output=True)
-        raw_scan_report = json.loads(result.stdout.decode('utf-8'))
+        try:
+            raw_scan_report = json.loads(result.stdout.decode('utf-8'))
+        except Exception as e:
+            raise Exception(f"Scan error package {package_and_version}: {result.stderr.decode('utf-8')}")
+        
         print(result.stderr.decode('utf-8'))
 
     return {
