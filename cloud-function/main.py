@@ -18,7 +18,7 @@ def entrypoint(request):
         error_slack_channel = os.environ["ERROR_SLACK_CHANNEL"]
 
         unscanned, num_unscanned = fetch_unscanned_installations(unscanned_package_data_view_uri)
-        if num_unscanned > 100:
+        if num_unscanned > 200:
             notify_nada(gsm_secret_path, error_slack_channel, f"PYPI proxy scanner is unable to catch up, the current number of unscanned installed packages are: {num_unscanned}")
 
         for user_email, package_installations in unscanned.items():
@@ -36,7 +36,7 @@ def scan_for_user(gsm_secret_path: str, scan_results_table_uri: str, user_email:
     print(f"Scanning {len(package_installations)} newly installed packages by user {user_email}")
     print(package_installations)
 
-    batch_size = 50
+    batch_size = 10
     for i in range(0, len(package_installations), batch_size):
         with multiprocessing.Pool() as pool:
             scan_results = pool.map(scan_package, package_installations[i:i+batch_size])

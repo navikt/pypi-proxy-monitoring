@@ -6,7 +6,7 @@ from typing import Tuple
 
 def fetch_unscanned_installations(table_uri: str) -> Tuple[dict, int]:
     client = Client()
-    query = f"SELECT user_email, package, version, install_timestamp, log_insert_id FROM `{table_uri}` ORDER BY install_timestamp ASC"
+    query = f"SELECT user_email, package, version, install_timestamp, log_insert_id FROM `{table_uri}` WHERE package != 'psycopg2' ORDER BY install_timestamp ASC"
 
     res = client.query_and_wait(query)
 
